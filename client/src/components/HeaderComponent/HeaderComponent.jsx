@@ -9,65 +9,54 @@ import {
 } from '@ant-design/icons'
 import ButtoninputSearch from '../ButtoninputSearch/ButtoninputSearch'
 import { useNavigate } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
-import * as UserService from '../../services/UserService'
-import { resetUser } from '../../redux/slides/userSlide'
 import Loading from '../LoadingComponent/Loading'
-import { searchProduct } from '../../redux/slides/productSlide'
 
 const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
     const navigate = useNavigate()
-    const user = useSelector((state) => state.user)
-    const dispatch = useDispatch()
-    const [loading, setLoading] = useState(false)
-    const [userName, setUserName] = useState('')
-    const [userAvatar, setUserAvatar] = useState('')
-    const [search, setSearch] = useState('')
-    const [isOpenPopup, setIsOpenPopup] = useState(false)
-    const order = useSelector(state => state.order)
+
 
     const handleNavigateLogin = () => {
         navigate('/sign-in')
     }
 
-    const handleLogout = async () => {
-        setLoading(true)
-        await UserService.logoutUser()
-        dispatch(resetUser())
-        localStorage.removeItem('access_token')
-        setLoading(false)
-        // handleNavigateLogin()
-        navigate('/')
-    }
+    // const handleLogout = async () => {
+    //     setLoading(true)
+    //     await UserService.logoutUser()
+    //     dispatch(resetUser())
+    //     localStorage.removeItem('access_token')
+    //     setLoading(false)
+    //     // handleNavigateLogin()
+    //     navigate('/')
+    // }
 
-    useEffect(() => {
-        setLoading(true)
-        setUserName(user?.name)
-        setUserAvatar(user?.avatar)
-        setLoading(false)
-    }, [user?.name, user?.avatar])
+    // useEffect(() => {
+    //     setLoading(true)
+    //     setUserName(user?.name)
+    //     setUserAvatar(user?.avatar)
+    //     setLoading(false)
+    // }, [user?.name, user?.avatar])
 
 
-    const content = (
-        <div>
-            <WrapperContentPopup
-                onClick={() => {
-                    handleClickNavigate('profile')
-                }}>Thông tin người dùng</WrapperContentPopup>
-            {user?.isAdmin && (
-                <WrapperContentPopup onClick={() => {
-                    handleClickNavigate('admin')
-                }}>Quản lý hệ thống</WrapperContentPopup>
-            )}
-            <WrapperContentPopup onClick={() =>
-                handleClickNavigate('my-order')
-            }>Đơn hàng của tôi</WrapperContentPopup>
-            <WrapperContentPopup onClick={() => {
-                handleClickNavigate()
-            }
-            }>Đăng xuất</WrapperContentPopup>
-        </div >
-    )
+    // const content = (
+    //     <div>
+    //         <WrapperContentPopup
+    //             onClick={() => {
+    //                 handleClickNavigate('profile')
+    //             }}>Thông tin người dùng</WrapperContentPopup>
+    //         {user?.isAdmin && (
+    //             <WrapperContentPopup onClick={() => {
+    //                 handleClickNavigate('admin')
+    //             }}>Quản lý hệ thống</WrapperContentPopup>
+    //         )}
+    //         <WrapperContentPopup onClick={() =>
+    //             handleClickNavigate('my-order')
+    //         }>Đơn hàng của tôi</WrapperContentPopup>
+    //         <WrapperContentPopup onClick={() => {
+    //             handleClickNavigate()
+    //         }
+    //         }>Đăng xuất</WrapperContentPopup>
+    //     </div >
+    // )
 
     const handleClickNavigate = (type) => {
         if (type === 'profile') {
