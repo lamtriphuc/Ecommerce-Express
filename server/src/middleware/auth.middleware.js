@@ -10,7 +10,6 @@ exports.protect = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (error) {
-        console.log(error)
         next(new AppError(401, 'Không có token'))
     }
-}
+}   
