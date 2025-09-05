@@ -22,14 +22,11 @@ const login = async (email, password) => {
     const user = await User.findOne({ email });
     if (!user) throw new AppError(404, 'Tài khoản không tồn tại');
 
-    console.log(user)
-    console.log(password)
-
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) throw new AppError(401, 'Tài khoản hoặc mật khẩu không chính xác');
 
     // Tạo token
-    const token = signToken({ id: user._id, email: user.email });
+    const token = signToken({ id: user._id, email: user.email, role: user.role });
 
     return { token };
 }

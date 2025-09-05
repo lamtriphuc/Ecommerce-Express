@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const userAddressController = require('../controllers/userAddress.controller');
-const { protect } = require('../middleware/auth.middleware');
+const { authMiddleware } = require('../middleware/auth.middleware');
 
-router.use(protect);
+router.use(authMiddleware);
 
 router.post('/', userAddressController.addAddress);
 router.get('/', userAddressController.getAddresses);
