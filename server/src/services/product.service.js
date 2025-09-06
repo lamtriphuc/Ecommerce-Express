@@ -6,7 +6,7 @@ const { productResponse } = require('../utils/response');
 const slugify = require('slugify');
 
 exports.createProduct = async (data) => {
-    const { name, description, category, price, stock } = data;
+    const { name, description, category, price, stock, discountPercent } = data;
 
     if (!name || !description || !category || !price || !stock)
         throw new AppError(400, 'Vui lòng nhập đủ các giá trị');
@@ -29,9 +29,11 @@ exports.createProduct = async (data) => {
         category,
         price,
         stock,
-        slug: finalSlug
+        slug: finalSlug,
+        discountPercent
     });
 
+    await newProduct.populate('category');
     return productResponse(newProduct);
 }
 

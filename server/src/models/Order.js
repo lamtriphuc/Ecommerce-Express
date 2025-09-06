@@ -12,11 +12,18 @@ const orderItemSchema = new mongoose.Schema(
             required: true,
             min: 1,
         },
-        unitPrice: {
+        originalPrice: { // giá gốc
             type: Number,
             required: true,
         },
-        //quantity * unit_price
+        discountPrice: { // giá sau giảm
+            type: Number,
+            required: true,
+        },
+        discountPercent: { // % giảm tại thời điểm đặt
+            type: Number,
+            required: true,
+        },
         total: {
             type: Number,
             required: true,

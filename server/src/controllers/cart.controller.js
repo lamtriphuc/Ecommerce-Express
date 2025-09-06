@@ -20,40 +20,6 @@ exports.addToCart = async (req, res, next) => {
     }
 };
 
-exports.updateCartItem = async (userId, productId, quantity) => {
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart) throw new AppError(404, "Cart không tồn tại");
-
-    const item = cart.items.find(
-        (item) => item.product.toString() === productId
-    );
-    if (!item) throw new AppError(404, "Item không tồn tại trong cart");
-
-    item.quantity = quantity;
-    await cart.save();
-    return cart;
-};
-
-exports.removeCartItem = async (userId, productId) => {
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart) throw new AppError(404, "Cart không tồn tại");
-
-    cart.items = cart.items.filter(
-        (item) => item.product.toString() !== productId
-    );
-    await cart.save();
-    return cart;
-};
-
-exports.clearCart = async (userId) => {
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart) throw new AppError(404, "Cart không tồn tại");
-
-    cart.items = [];
-    await cart.save();
-    return cart;
-};
-
 exports.updateCartItem = async (req, res, next) => {
     try {
         const { productId, quantity } = req.body;

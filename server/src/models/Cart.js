@@ -12,10 +12,10 @@ const cartItemSchema = new mongoose.Schema(
             required: true,
             min: 1,
         },
-        priceAtAdd: {
-            type: Number,
-            required: true,
-        },
+        // snapshot giá tại thời điểm thêm vào
+        originalPriceAtAdd: { type: Number, required: true }, // giá gốc
+        discountPriceAtAdd: { type: Number, required: true }, // giá sau giảm
+        discountPercentAtAdd: { type: Number, required: true }, // % giảm
     },
     { _id: false } // không cần id riêng cho item
 );
