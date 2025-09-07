@@ -18,7 +18,51 @@ const SignInPage = () => {
     const dispatch = useDispatch()
     const location = useLocation()
 
+    const mutation = useMutationHooks(
+        data => UserService.loginUser(data)
+    )
 
+    const { data, isPending, isSuccess } = mutation
+
+    useEffect(() => {
+        if (isSuccess && data?.status === 'OK') {
+            if (location?.state) {
+                navigate(location?.state)
+            } else {
+                navigate('/')
+            }
+            localStorage.setItem('access_token', JSON.stringify(data?.access_token))
+            localStorage.setItem('refresh_token', JSON.stringify(data?.refresh_token))
+            if (data?.access_token) {
+                const decoded = jwtDecode(data?.access_token);
+                if (decoded?.id) {
+                    handleGetDetailsUser(decoded?.id, data?.access_token)
+                }
+            }
+        }
+    }, [isSuccess])
+
+    const handleGetDetailsUser = async (id, token) => {
+        const storage = localStorage.getItem('refresh_token')
+        const refreshToken = JSON.parse(storage)
+        const res = await UserService.getDetailsUser(id, token)
+        dispatch(updateUser({ ...res?.data, access_token: token, refreshToken }))
+    }
+
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [isShowPassword, setIsShowPassword] = useState(false)
+
+    const handleNavigateSignUp = () => {
+        navigate('/sign-up')
+    }
+
+    const handelSignIn = () => {
+        mutation.mutate({
+            email,
+            password
+        })
+    }
 
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#ccc' }}>

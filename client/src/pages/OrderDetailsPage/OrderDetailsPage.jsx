@@ -13,6 +13,72 @@ import * as message from '../../components/Message/MessageComponent'
 import { useSelector } from 'react-redux'
 
 const OrderDetailsPage = () => {
+    const navigate = useNavigate()
+    const user = useSelector((state) => state.user)
+    const params = useParams()
+    const { id } = params
+    const location = useLocation()
+    const { state } = location
+
+    const fetchOrderDetails = async () => {
+        const res = await OrderService.getOrderDetails(id, state?.token)
+        return res
+    }
+
+    const queryOrderDetails = useQuery({
+        queryKey: ['order-details'],
+        queryFn: fetchOrderDetails,
+        enabled: !!id && !!state?.token
+    })
+
+    const { data, isPending } = queryOrderDetails
+    const { orderItems, shippingAddress } = data?.data || {}
+    const orderDetails = data?.data || {}
+
+    const date = new Date(orderDetails?.createdAt);
+    date.setDate(date.getDate() + 5);
+    const formatted = formattedDate(date);
+
+    const process = [
+        { title: 'Đang chờ xử lý' },            // => 'pending'
+        { title: 'Đang đóng gói và giao hàng' },// => 'confirmed'
+        { title: 'Đang giao' },                 // => 'shipping'
+        { title: 'Hoàn tất' }                   // => 'delivered'
+    ]
+
+    const mutationDelete = useMutationHooks(
+        (data) => {
+            const { id, token, orderItems } = data
+            return OrderService.deleteOrder(id, token, orderItems)
+        }
+    )
+    const { data: dataCancel, isPending: isPendingCancel, isSuccess: isSuccessCancel, isError: isErrorCancel } = mutationDelete
+
+    const handleCancelOrder = (order) => {
+        mutationDelete.mutate({ id: order?._id, token: state?.token, orderItems: order?.orderItems })
+    }
+    useEffect(() => {
+        if (!isPendingCancel && dataCancel) {
+            if (dataCancel?.status === 'OK') {
+                message.success('Hủy đơn hàng thành công!')
+                navigate('/my-order', {
+                    state: {
+                        id: user?._id,
+                        token: user?.access_token
+                    }
+                })
+            } else if (dataCancel?.status !== 'OK') {
+                message.error('Hủy đơn hàng thất bại!')
+            }
+        }
+    }, [isPendingCancel, dataCancel])
+
+    const priceMemo = useMemo(() => {
+        const result = orderDetails?.orderItems?.reduce((total, cur) => {
+            return total + (cur.price * cur.amount)
+        }, 0)
+        return result
+    }, [orderDetails])
 
 
     return (

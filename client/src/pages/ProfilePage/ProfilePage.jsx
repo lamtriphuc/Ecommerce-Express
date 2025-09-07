@@ -15,7 +15,82 @@ import { getBase64 } from '../../utils'
 const ProfilePage = () => {
     const dispatch = useDispatch()
 
+    const user = useSelector((state) => state.user)
+    const [email, setEmail] = useState('')
+    const [name, setName] = useState('')
+    const [phone, setPhone] = useState('')
+    const [address, setAddress] = useState('')
+    const [avatar, setAvatar] = useState('')
 
+    const mutation = useMutationHooks(
+        ({ id, data, access_token }) => UserService.updateUser(id, data, access_token)
+    )
+
+    const { id, data, isPending } = mutation
+
+    useEffect(() => {
+        setEmail(user?.email)
+        setName(user?.name)
+        setPhone(user?.phone)
+        setAddress(user?.address)
+        setAvatar(user?.avatar)
+    }, [user])
+
+    const handleGetDetailsUser = async (id, token) => {
+        const res = await UserService.getDetailsUser(id, token)
+        dispatch(updateUser({ ...res?.data, access_token: token }))
+    }
+
+    // const handleOnChangeAvatar = async ({ fileList }) => {
+    //     const file = fileList[0]
+    //     if (!file.url && !file.preview) {
+    //         file.preview = await getBase64(file.originFileObj);
+    //     }
+    //     setAvatar(file.preview)
+    // }
+    const handleOnChangeAvatar = async ({ fileList }) => {
+        const file = fileList[0]?.originFileObj;
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'upload-image');
+
+        try {
+            const res = await fetch('https://api.cloudinary.com/v1_1/ddpy7dxxa/image/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.secure_url) {
+                setAvatar(data.secure_url)
+            } else {
+                console.error('Upload lỗi:', data);
+            }
+        } catch (err) {
+            console.error('Lỗi upload Cloudinary:', err);
+        }
+    }
+
+    const handelUpdate = () => {
+        mutation.mutate(
+            {
+                id: user?._id,
+                data: { email, name, phone, address, avatar },
+                access_token: user?.access_token
+            },
+            {
+                onSuccess: () => {
+                    handleGetDetailsUser(user?._id, user?.access_token)
+                    message.success('Cập nhật thông tin thành công!')
+                },
+                onError: () => {
+                    message.error('Cập nhật thông tin thất bại!')
+                }
+            }
+        )
+    }
 
     return (
         <div style={{ width: '1270px', margin: '0 auto' }}>

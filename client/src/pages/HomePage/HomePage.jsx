@@ -12,6 +12,38 @@ import Loading from '../../components/LoadingComponent/Loading'
 import { useDebounce } from '../../hooks/useDebounce'
 
 const HomePage = () => {
+    const [limit, setLimit] = useState(12)
+    const [isLoading, setIsLoading] = useState(false)
+    const [typeProducts, setTypeProducts] = useState([])
+    const searchProduct = useSelector(state => state?.product?.search)
+    const searchDebounce = useDebounce(searchProduct, 500)
+
+    const fetchProductAll = async ({ queryKey }) => {
+        const [, limit, search] = queryKey
+        const res = await ProductService.getAllProduct(search, limit)
+        return res
+    }
+
+    const fetchAllTypeProduct = async () => {
+        const res = await ProductService.getAllTypeProduct()
+        if (res?.status === 'OK') {
+            setTypeProducts(res?.data)
+        }
+    }
+
+    const { isPending, data: products, isPreviousData } = useQuery({
+        queryKey: ['products', limit, searchDebounce],
+        queryFn: fetchProductAll,
+        refetchOnWindowFocus: false,
+        keepPreviousData: true,
+    })
+
+    const currentPage = Math.ceil(limit / 12)
+    const isLoadMoreDisabled = currentPage >= products?.totalPage
+
+    useEffect(() => {
+        fetchAllTypeProduct()
+    }, [])
 
 
 
