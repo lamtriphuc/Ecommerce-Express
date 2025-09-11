@@ -97,3 +97,30 @@ exports.getOrderById = async (orderId, userId, isAdmin = false) => {
 
     return order;
 };
+
+exports.cancelOrder = async (orderId, userId, isAdmin = false) => {
+    const order = await Order.findById(orderId);
+    if (!order) throw new AppError(404, 'Không tìm thấy đơn hàng');
+
+    if (!isAdmin && order.user.toString() === userId) {
+        throw new AppError(403, 'Bạn không có quyền hủy đơn này')
+    }
+
+    if (!['pending', 'paid'].includes(order.status)) {
+        throw new AppError(400, 'Đơn hàng đang trong trạng thái không thể hủy');
+    }
+
+    order.status = 'cancelled';
+    await order.save();
+
+    return order;
+}
+
+exports.isValidToPayment = async (orderId) => {
+    const order = await Order.findById(orderId);
+    if (!order) throw new AppError(404, "Đơn hàng không tồn tại");
+
+    if (['cancelled', 'paid'].includes(order.status)) {
+        throw new AppError(400, "Trạng thái đơn hàng không hợp lệ để thanh toán");
+    }
+}
