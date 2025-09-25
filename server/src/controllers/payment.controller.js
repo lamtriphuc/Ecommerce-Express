@@ -2,7 +2,17 @@ const { successResponse } = require('../utils/response');
 const paymentService = require('../services/payment.service');
 const orderService = require('../services/order.service');
 
-exports.createPaymentUrl = async (req, res, next) => {
+exports.createCODPayment = async (req, res, next) => {
+    try {
+        const { orderId } = req.body;
+        const payment = await paymentService.createCODPayment(orderId);
+        return successResponse(res, payment, 200, "Thanh toán COD đã tạo");
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.createVnpayPayment = async (req, res, next) => {
     try {
         const { orderId } = req.body;
         await orderService.isValidToPayment(orderId);
@@ -13,7 +23,7 @@ exports.createPaymentUrl = async (req, res, next) => {
             req.socket.remoteAddress;
 
         const paymentUrl = await paymentService.createPaymentUrl(order, ipAddr);
-        return successResponse(res, paymentUrl, 200, 'Đã xử lý thanh toán');
+        return successResponse(res, paymentUrl, 200, 'Chuyển tới VNPAY');
     } catch (error) {
         next(error);
     }

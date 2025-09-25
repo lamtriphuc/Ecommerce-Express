@@ -78,6 +78,10 @@ const orderSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
+        payment: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Payment",
+        }
     },
     {
         timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
