@@ -1,46 +1,55 @@
 import React, { useEffect, useState } from 'react'
-import { WrapperContainerLeft, WrapperContainerRight, WrapperTextLight } from './style'
+import { WrapperContainer, WrapperTextLight } from './style'
 import InputForm from '../../components/InputForm/InputForm'
 import ButtonComponent from '../../components/ButtonComponent/ButtonComponent'
-import { Image } from 'antd'
-import logoLogin from '../../assets/images/logo-login.png'
 import { EyeFilled, EyeInvisibleFilled } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import { useMutationHooks } from '../../hooks/useMutationHook'
-import * as UserService from '../../services/UserService'
 import Loading from '../../components/LoadingComponent/Loading'
+import { registerUser } from '../../apis/userApi'
+import { useMutation } from '@tanstack/react-query'
 import * as message from '../../components/Message/MessageComponent'
 
 const SignUpPage = () => {
   const navigate = useNavigate()
 
-  const mutation = useMutationHooks(
-    data => UserService.signUpUser(data)
-  )
-
-  const { data, isPending, isError, isSuccess } = mutation
-
-  useEffect(() => {
-    if (isSuccess && data?.status === 'OK') {
-      message.success()
-      handleNavigateSignIn()
-    } else if (isError) {
-      message.error()
-    }
-  }, [isSuccess, isError])
-
+  const [loading, setLoading] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false)
   const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false)
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
+  // call api
+  const register = async (data) => {
+    try {
+      setLoading(true);
+      const response = await registerUser(data);
+      message.success(response.message);
+      navigate('/sign-in');
+    } catch (error) {
+      message.error(error.response.data.message);
+    } finally {
+      // setLoading(false);
+    }
+  }
+
+  // query
+  const mutationRegister = useMutation({
+    mutationKey: ['register-user'],
+    mutationFn: register
+  })
+
   const handleSignUp = () => {
-    mutation.mutate({
-      email,
-      password,
-      confirmPassword
-    })
+    if (!username || !email || !password) {
+      message.error('Vui lòng nhập đầy đủ thông tin bên dưới');
+      return;
+    }
+    if (password !== confirmPassword) {
+      message.error('Mật khẩu xác nhận không khớp');
+      return;
+    }
+    mutationRegister.mutate({ username, email, password })
   }
 
   const handleNavigateSignIn = () => {
@@ -49,10 +58,16 @@ const SignUpPage = () => {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#ccc' }}>
-      <div style={{ display: 'flex', width: '800px', height: '460px', borderRadius: '6px', background: '#fff' }}>
-        <WrapperContainerLeft>
+      <div style={{ display: 'flex', width: '500px', height: '460px', borderRadius: '6px', background: '#fff' }}>
+        <WrapperContainer>
           <h1 style={{ margin: '0' }}>Tạo tài khoản</h1>
           <p>Vui lòng nhập các thông tin bên dưới</p>
+          <InputForm
+            style={{ marginBottom: '10px' }}
+            placeholder='tên người dùng'
+            value={username}
+            onChange={(e) => { setUsername(e.target.value) }}
+          />
           <InputForm
             style={{ marginBottom: '10px' }}
             placeholder='abc@gmail.com'
@@ -74,7 +89,7 @@ const SignUpPage = () => {
           </div>
           <InputForm
             style={{ marginBottom: '10px' }}
-            placeholder='password'
+            placeholder='mật khẩu'
             value={password}
             type={isShowPassword ? 'text' : 'password'}
             onChange={(e) => { setPassword(e.target.value) }}
@@ -94,13 +109,13 @@ const SignUpPage = () => {
           </div>
           <InputForm
             style={{ marginBottom: '10px' }}
-            placeholder='confirm password'
+            placeholder='nhập lại mật khẩu'
             value={confirmPassword}
             type={isShowConfirmPassword ? 'text' : 'password'}
             onChange={(e) => { setConfirmPassword(e.target.value) }}
           />
-          {data?.status === 'ERR' && <span style={{ color: 'red', marginTop: '5px' }}>{data?.message}</span>}
-          <Loading isLoading={isPending}>
+          {/* {data?.status === 'ERR' && <span style={{ color: 'red', marginTop: '5px' }}>{data?.message}</span>} */}
+          <Loading isLoading={loading}>
             <ButtonComponent
               disabled={!email.length || !password.length || !confirmPassword.length}
               onClick={handleSignUp}
@@ -118,11 +133,7 @@ const SignUpPage = () => {
             ></ButtonComponent>
           </Loading>
           <p>Bạn đã có tài khoản? <WrapperTextLight onClick={handleNavigateSignIn}> Đăng nhập</WrapperTextLight></p>
-        </WrapperContainerLeft>
-        <WrapperContainerRight>
-          <Image src={logoLogin} preview={false} alt='logo login' width={200} height={200} />
-          <h4 style={{ color: 'rgb(10, 104, 255)' }}>Mua sắm tại LTP</h4>
-        </WrapperContainerRight>
+        </WrapperContainer>
       </div>
     </div>
   )

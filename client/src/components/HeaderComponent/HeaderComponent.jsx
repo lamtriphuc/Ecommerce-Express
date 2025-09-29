@@ -12,7 +12,12 @@ import { useNavigate } from 'react-router-dom'
 import Loading from '../LoadingComponent/Loading'
 
 const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+
+    const user = null;
+    const order = null;
+
 
 
     const handleNavigateLogin = () => {
@@ -58,23 +63,23 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
     //     </div >
     // )
 
-    const handleClickNavigate = (type) => {
-        if (type === 'profile') {
-            navigate('/profile-user')
-        } else if (type === 'admin') {
-            navigate('/system/admin')
-        } else if (type === 'my-order') {
-            navigate('/my-order', {
-                state: {
-                    id: user?._id,
-                    token: user?.access_token
-                }
-            })
-        } else {
-            handleLogout()
-        }
-        setIsOpenPopup(false)
-    }
+    // const handleClickNavigate = (type) => {
+    //     if (type === 'profile') {
+    //         navigate('/profile-user')
+    //     } else if (type === 'admin') {
+    //         navigate('/system/admin')
+    //     } else if (type === 'my-order') {
+    //         navigate('/my-order', {
+    //             state: {
+    //                 id: user?._id,
+    //                 token: user?.access_token
+    //             }
+    //         })
+    //     } else {
+    //         handleLogout()
+    //     }
+    //     setIsOpenPopup(false)
+    // }
 
     const onSearch = (e) => {
         setSearch(e.target.value)

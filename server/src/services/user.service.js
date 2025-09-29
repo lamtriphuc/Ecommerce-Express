@@ -3,10 +3,15 @@ const bcrypt = require('bcrypt');
 const AppError = require('../utils/appError');
 const { userResponse } = require("../utils/response");
 const { signToken } = require("../utils/jwt");
+const { isEmail, isStrongPassword } = require("../utils/validate");
 
 const createUser = async ({ username, email, password }) => {
-    const exit = await User.findOne({ email })
-    if (exit) throw new AppError(409, 'Email đã tồn tại');
+    const exist = await User.findOne({ email })
+    if (exist) throw new AppError(409, 'Email đã tồn tại');
+
+    if (!isEmail(email)) throw new AppError(400, 'Email phải có định dạng là email');
+    // if (!isStrongPassword(password)) throw new AppError(400
+    //     , 'Mật khẩu phải ít nhất 8 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt');
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
