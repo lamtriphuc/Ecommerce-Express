@@ -1,7 +1,6 @@
 import React from 'react'
 import { StyleNameProduct, WapperCardStyle, WrapperDiscountText, WrapperPriceText, WrapperReportText, WrapperStyleTextSell } from './style'
 import { StarFilled } from '@ant-design/icons'
-import official from '../../assets/images/official.png'
 import { useNavigate } from 'react-router-dom'
 import { convertPrice } from '../../utils'
 

@@ -64,12 +64,48 @@ exports.updateProduct = async (id, data) => {
     return productResponse(existProduct);
 }
 
-exports.getAllProducts = async () => {
-    const products = await Product.find()
+exports.getAllProducts = async ({ page = 1, limit = 10, keyword, category, minPrice, maxPrice }) => {
+    const skip = (page - 1) * limit;
+
+    // lưu kq ở đây
+    let filter = {};
+
+    // keyword search (theo name, slug, description)
+    if (keyword) {
+        filter.$or = [
+            { name: { $regex: keyword, $options: 'i' } },
+            { slug: { $regex: keyword, $options: 'i' } },
+            { description: { $regex: keyword, $options: 'i' } }
+        ];
+    }
+
+    // lọc theo category
+    if (category) {
+        filter.category = category;
+    }
+
+    // lọc theo khoảng giá
+    if (minPrice > 0 || maxPrice > 0) {
+        filter.price = {};
+        if (minPrice > 0) filter.price.$gte = Number(minPrice);
+        if (maxPrice > 0) filter.price.$lte = Number(maxPrice);
+    }
+
+    const products = await Product.find(filter)
         .populate('category', 'name slug')
-        .sort({ created_at: -1 });
-    const res = products.map(product => productResponse(product));
-    return res;
+        .sort({ created_at: -1 })
+        .skip(skip)
+        .limit(Number(limit));
+
+    const total = await Product.countDocuments(filter);
+
+    return {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / limit),
+        data: products.map(product => productResponse(product)),
+    };
 }
 
 exports.getProductById = async (id) => {

@@ -20,8 +20,8 @@ axiosInstance.interceptors.response.use(
         const originalRequest = error.config;
 
         const isLoginOrRefresh =
-            originalRequest.url.includes('/auth/login') ||
-            originalRequest.url.includes('/auth/refresh-token');
+            originalRequest.url.includes('/users/login') ||
+            originalRequest.url.includes('/users/refresh-token');
 
         // Nếu không có access token hoặc không có refresh token → không gọi refresh
         const token = localStorage.getItem('accessToken');

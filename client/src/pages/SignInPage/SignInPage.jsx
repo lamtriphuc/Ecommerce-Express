@@ -1,21 +1,42 @@
 import { WrapperContainer, WrapperTextLight } from './style'
-import { Image } from 'antd'
+import { Image, message } from 'antd'
 import InputForm from '../../components/InputForm/InputForm'
 import ButtonComponent from '../../components/ButtonComponent/ButtonComponent'
 import { EyeFilled, EyeInvisibleFilled } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Loading from '../../components/LoadingComponent/Loading'
 import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
+import { getMe, login } from '../../apis/userApi'
+import { useAuth } from '../../contexts/AuthContext'
 
 const SignInPage = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [isShowPassword, setIsShowPassword] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('user@gmail.com');
+    const [password, setPassword] = useState('111111');
+    const { user, setUser } = useAuth();
+
+    const useLogin = useMutation({
+        mutationFn: login,
+        onSuccess: async (data) => {
+            message.success(data.message);
+            const res = await getMe();
+            setUser(res.data);
+            navigate('/');
+        },
+        onError: (error) => {
+            console.log(error)
+            message.error(error.response.data.message)
+        }
+    })
+
+    console.log(user)
+
 
     const handelSignIn = () => {
-
+        useLogin.mutate({ email, password });
     }
 
     const handleNavigateSignUp = () => {

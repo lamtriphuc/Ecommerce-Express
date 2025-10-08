@@ -7,13 +7,16 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import '@ant-design/v5-patch-for-react-19';
+import { AuthProvider } from './contexts/AuthContext.jsx'
 
 const queryClient = new QueryClient()
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </QueryClientProvider>
   </React.StrictMode>
 )

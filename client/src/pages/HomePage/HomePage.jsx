@@ -1,77 +1,94 @@
 import React, { useEffect, useRef, useState } from 'react'
-import TypeProduct from '../../components/TypeProduct/TypeProduct'
+import CategoryComponent from '../../components/CategoryComponent/CategoryComponent'
 import SliderComponent from '../../components/SliderComponent/SliderComponent'
-import { WrapperButtonMore, WrapperProducts, WrapperTypeProduct } from './style'
+import { WrapperProducts, WrapperTypeProduct } from './style'
 import slider1 from '../../assets/images/slider1.png'
 import slider2 from '../../assets/images/slider2.png'
 import CardComponent from '../../components/CardComponent/CardComponent'
-import * as ProductService from '../../services/ProductService'
-import { useQuery } from '@tanstack/react-query'
-import { useSelector } from 'react-redux'
 import Loading from '../../components/LoadingComponent/Loading'
-import { useDebounce } from '../../hooks/useDebounce'
+import { useQuery } from '@tanstack/react-query'
+import { getAllProducts } from '../../apis/productApi'
+import { data } from 'react-router-dom'
+import { getAllCategories } from '../../apis/categoryApi'
+import { Pagination } from 'antd'
 
 const HomePage = () => {
-    const [limit, setLimit] = useState(12)
-    const [isLoading, setIsLoading] = useState(false)
-    const [typeProducts, setTypeProducts] = useState([])
-    const searchProduct = useSelector(state => state?.product?.search)
-    const searchDebounce = useDebounce(searchProduct, 500)
+    const limit = 6;
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(false)
+    const [category, setCategory] = useState('');
+    const [keyword, setKeyword] = useState('');
+    const [minPrice, setMinPrice] = useState(null);
+    const [maxPrice, setMaxPrice] = useState(null);
 
-    const fetchProductAll = async ({ queryKey }) => {
-        const [, limit, search] = queryKey
-        const res = await ProductService.getAllProduct(search, limit)
-        return res
-    }
-
-    const fetchAllTypeProduct = async () => {
-        const res = await ProductService.getAllTypeProduct()
-        if (res?.status === 'OK') {
-            setTypeProducts(res?.data)
-        }
-    }
-
-    const { isPending, data: products, isPreviousData } = useQuery({
-        queryKey: ['products', limit, searchDebounce],
-        queryFn: fetchProductAll,
-        refetchOnWindowFocus: false,
+    // Fetch data
+    // All products
+    const {
+        data: products,
+        error: productError,
+        isSuccess: isProductsSuccess,
+        isError: isProductsError,
+        isLoading: isProductsLoading
+    } = useQuery({
+        queryKey: ['products', page, keyword, category, minPrice, maxPrice],
+        queryFn: () => {
+            const params = { page, limit };
+            if (keyword) params.keyword = keyword;
+            if (category) params.category = category;
+            if (minPrice != null) params.minPrice = minPrice;
+            if (maxPrice != null) params.maxPrice = maxPrice;
+            return getAllProducts(params);
+        },
         keepPreviousData: true,
+    });
+
+    // Cate list
+    const {
+        data: categories,
+        error: categoryError,
+        isSuccess: isCategoriessSuccess,
+        isError: isCategoriesError,
+        isLoading: isCategoriesLoading
+    } = useQuery({
+        queryKey: ['categories'],
+        queryFn: getAllCategories
     })
 
-    const currentPage = Math.ceil(limit / 12)
-    const isLoadMoreDisabled = currentPage >= products?.totalPage
 
+    // UseEffect
     useEffect(() => {
-        fetchAllTypeProduct()
+
     }, [])
-
-
 
     return (
         <>
             <div style={{ width: '1270px', margin: '0 auto' }}>
+                <h3 style={{ margin: '5px 0' }}>Danh mục sản phẩm</h3>
                 <WrapperTypeProduct>
-                    {typeProducts.map((item) => {
+                    {categories?.data?.map((category) => {
                         return (
-                            <TypeProduct name={item} key={item} />
+                            <CategoryComponent
+                                key={category.slug}
+                                name={category.name}
+                                slug={category.slug}
+                            />
                         )
                     })}
                 </WrapperTypeProduct>
             </div>
-            <div className='body' style={{ backgroundColor: '#efefef', width: '100%' }}>
-                <div id='container' style={{ width: '1270px', margin: '0 auto', height: '100%' }}>
-                    <SliderComponent arrImages={[slider1, slider2]} />
-                    <Loading isLoading={isPending || isLoading}>
+            <div style={{ width: '100%', minHeight: 'calc(100vh - 156px)' }}>
+                <div style={{ width: '1270px', margin: '0 auto', height: '100%' }}>
+                    <h3 style={{ margin: '5px 0 10px 0' }}>Sản phẩm mới nhất</h3>
+                    <Loading isLoading={isProductsLoading}>
                         <WrapperProducts>
-                            {products?.data?.map((product) => {
-                                const productImages = product?.image.split(',') || []
+                            {products?.data?.data?.map((product) => {
                                 return (
                                     <CardComponent
-                                        key={product._id}
-                                        id={product._id}
+                                        key={product.id}
+                                        id={product.id}
                                         countInStock={product.countInStock}
                                         description={product.description}
-                                        image={productImages[0]}
+                                        image={product.thumbnail}
                                         name={product.name}
                                         price={product.price}
                                         rating={product.rating}
@@ -82,21 +99,13 @@ const HomePage = () => {
                                 )
                             })}
                         </WrapperProducts>
-                        <div style={{ width: '100%', display: 'flex', marginTop: '10px', justifyContent: 'center' }}>
-                            <WrapperButtonMore
-                                textButton={isPreviousData ? 'Đang tải thêm...' : 'Xem thêm'}
-                                type='outline'
-                                styleButton={{
-                                    border: !isLoadMoreDisabled ? '1px solid rgb(11, 116, 229)' : '1px solid', color: isLoadMoreDisabled ? '#ccc' : 'rgb(11, 116, 229)',
-                                    width: '240px', height: '38px', borderRadius: '4px', marginBottom: '40px'
-                                }}
-                                disabled={isLoadMoreDisabled}
-                                styleTextButton={{ fontWeight: '500', color: products?.total === products?.data?.length && '#fff' }}
-                                onClick={() => {
-                                    if (!isLoadMoreDisabled) {
-                                        setLimit(prev => prev + 6);
-                                    }
-                                }}
+                        <div style={{ marginTop: '20px' }}>
+                            <Pagination
+                                align="center"
+                                current={page}
+                                total={products?.data?.total}
+                                pageSize={6}
+                                onChange={(curent) => setPage(curent)}
                             />
                         </div>
                     </Loading>

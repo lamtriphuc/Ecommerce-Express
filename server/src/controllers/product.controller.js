@@ -22,7 +22,15 @@ exports.updateProduct = async (req, res, next) => {
 
 exports.getAllProducts = async (req, res, next) => {
     try {
-        const products = await productService.getAllProducts();
+        const { page = 1, limit = 6, keyword, category, minPrice, maxPrice } = req.query;
+        const products = await productService.getAllProducts({
+            page,
+            limit,
+            keyword,
+            category,
+            minPrice,
+            maxPrice
+        });
         return successResponse(res, products, 200, 'Lấy danh sách sản phẩm thành công');
     } catch (error) {
         next(error);
